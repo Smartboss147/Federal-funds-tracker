@@ -1,0 +1,16 @@
+{
+  "collections": [
+    {
+      "name": "tracking_sessions",
+      "rules": ["read_write_if_owner"],
+      "owner_field": "userId",
+      "fields": {
+        "userId": "string",
+        "planId": "string",
+        "step": "number",
+        "startTime": "number",
+        "updatedAt": "timestamp"
+      }
+    }
+  ]
+}

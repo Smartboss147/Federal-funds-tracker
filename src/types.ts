@@ -7,6 +7,8 @@ export interface Plan {
 }
 
 export interface TrackerState {
+  id?: string;
+  userId?: string;
   step: 1 | 2 | 3 | 4;
   planId: string | null;
   startTime: number | null;

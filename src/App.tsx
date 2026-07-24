@@ -9,9 +9,12 @@ import { PlanSelector } from './components/PlanSelector';
 import { PaymentScreen } from './components/PaymentScreen';
 import { ReceiptUpload } from './components/ReceiptUpload';
 import { TrackerDashboard } from './components/TrackerDashboard';
-import { ShieldCheck } from 'lucide-react';
+import { AuthScreen } from './components/AuthScreen';
+import { ShieldCheck, LogOut } from 'lucide-react';
 
-const STORAGE_KEY = 'federal_funds_tracker_state';
+import { auth, db } from './lib/firebase';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { collection, query, where, getDocs, addDoc, updateDoc, doc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 
 const INITIAL_STATE: TrackerState = {
   step: 1,
@@ -21,29 +24,69 @@ const INITIAL_STATE: TrackerState = {
 
 export default function App() {
   const [trackerState, setTrackerState] = useState<TrackerState>(INITIAL_STATE);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.step) {
-          setTrackerState(parsed);
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load state', e);
-    }
-    setIsLoaded(true);
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setAuthLoading(false);
+    });
+    return unsubscribe;
   }, []);
 
-  const saveState = (newState: TrackerState) => {
+  useEffect(() => {
+    if (!user) {
+      setTrackerState(INITIAL_STATE);
+      return;
+    }
+
+    const q = query(collection(db, 'tracking_sessions'), where('userId', '==', user.uid));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const docData = snapshot.docs[0];
+        const data = docData.data();
+        setTrackerState({
+          id: docData.id,
+          userId: data.userId,
+          step: data.step,
+          planId: data.planId,
+          startTime: data.startTime
+        } as TrackerState);
+      } else {
+        setTrackerState({ ...INITIAL_STATE, userId: user.uid });
+      }
+    });
+
+    return unsubscribe;
+  }, [user]);
+
+  const saveState = async (newState: TrackerState) => {
+    if (!user) return;
+    
+    // Optimistic UI update
     setTrackerState(newState);
+
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+      if (newState.id) {
+        const docRef = doc(db, 'tracking_sessions', newState.id);
+        await updateDoc(docRef, {
+          step: newState.step,
+          planId: newState.planId,
+          startTime: newState.startTime,
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        await addDoc(collection(db, 'tracking_sessions'), {
+          userId: user.uid,
+          step: newState.step,
+          planId: newState.planId,
+          startTime: newState.startTime,
+          updatedAt: serverTimestamp()
+        });
+      }
     } catch (e) {
-      console.error('Failed to save state', e);
+      console.error('Failed to save state to Firebase', e);
     }
   };
 
@@ -62,10 +105,10 @@ export default function App() {
   };
 
   const handleRestart = () => {
-    saveState(INITIAL_STATE);
+    saveState({ ...INITIAL_STATE, id: trackerState.id, userId: user?.uid });
   };
 
-  if (!isLoaded) return null;
+  if (authLoading) return null;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col overflow-hidden">
@@ -81,25 +124,40 @@ export default function App() {
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
             System Ready
           </div>
+          {user && (
+            <button
+              onClick={() => signOut(auth)}
+              className="flex items-center justify-center p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </header>
 
       <main className="flex-1 overflow-auto p-4 md:p-6 flex flex-col items-center">
-        {trackerState.step === 1 && (
-          <PlanSelector 
-            selectedPlanId={trackerState.planId} 
-            onSelect={handlePlanSelect} 
-            onStart={handleNextStep} 
-          />
-        )}
-        {trackerState.step === 2 && (
-          <PaymentScreen onContinue={handleNextStep} />
-        )}
-        {trackerState.step === 3 && (
-          <ReceiptUpload onContinue={handleNextStep} />
-        )}
-        {trackerState.step === 4 && (
-          <TrackerDashboard state={trackerState} onRestart={handleRestart} />
+        {!user ? (
+          <AuthScreen onSuccess={() => {}} />
+        ) : (
+          <>
+            {trackerState.step === 1 && (
+              <PlanSelector 
+                selectedPlanId={trackerState.planId} 
+                onSelect={handlePlanSelect} 
+                onStart={handleNextStep} 
+              />
+            )}
+            {trackerState.step === 2 && (
+              <PaymentScreen onContinue={handleNextStep} />
+            )}
+            {trackerState.step === 3 && (
+              <ReceiptUpload onContinue={handleNextStep} />
+            )}
+            {trackerState.step === 4 && (
+              <TrackerDashboard state={trackerState} onRestart={handleRestart} />
+            )}
+          </>
         )}
       </main>
 
