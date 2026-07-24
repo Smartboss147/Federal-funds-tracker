@@ -124,6 +124,22 @@ export function TrackerDashboard({ state, onRestart }: TrackerDashboardProps) {
               <span className="text-slate-800 font-bold text-sm">{state.incidentInfo.dateOfBirth}</span>
             </div>
             <div>
+              <span className="text-slate-400 font-medium block">Marital Status</span>
+              <span className="text-slate-800 font-bold text-sm">{state.incidentInfo.maritalStatus || 'N/A'}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 font-medium block">Residential Address</span>
+              <span className="text-slate-800 font-bold text-sm">{state.incidentInfo.residentialAddress}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 font-medium block">Work Address</span>
+              <span className="text-slate-800 font-bold text-sm">{state.incidentInfo.workAddress}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 font-medium block">Employment / Occupation</span>
+              <span className="text-slate-800 font-bold text-sm">{state.incidentInfo.employmentType} {state.incidentInfo.employerName ? `(${state.incidentInfo.employerName})` : ''}</span>
+            </div>
+            <div className="sm:col-span-3">
               <span className="text-slate-400 font-medium block">Claimed Amount</span>
               <span className="text-slate-800 font-bold text-sm">{state.incidentInfo.currency} {state.incidentInfo.amount}</span>
             </div>

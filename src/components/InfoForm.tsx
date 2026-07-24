@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { IncidentInfo } from '../types';
-import { FileText, User, Calendar, DollarSign, AlertCircle } from 'lucide-react';
+import { FileText, User, Calendar, DollarSign, AlertCircle, Home, Briefcase, MapPin } from 'lucide-react';
 
 interface InfoFormProps {
   initialData?: IncidentInfo;
@@ -57,9 +57,22 @@ const CURRENCIES = [
   { code: 'ARS', symbol: '$', label: 'Argentina (ARS $)' },
 ];
 
+const MARITAL_STATUSES = [
+  { value: 'Single', label: 'Single' },
+  { value: 'Married', label: 'Married' },
+  { value: 'Divorced', label: 'Divorced' },
+  { value: 'Widowed', label: 'Widowed' },
+  { value: 'Prefer not to say', label: 'Prefer not to say' },
+];
+
 export function InfoForm({ initialData, onContinue, onCancel }: InfoFormProps) {
   const [fullName, setFullName] = useState(initialData?.fullName || '');
   const [dateOfBirth, setDateOfBirth] = useState(initialData?.dateOfBirth || '');
+  const [maritalStatus, setMaritalStatus] = useState(initialData?.maritalStatus || '');
+  const [residentialAddress, setResidentialAddress] = useState(initialData?.residentialAddress || '');
+  const [workAddress, setWorkAddress] = useState(initialData?.workAddress || '');
+  const [employmentType, setEmploymentType] = useState(initialData?.employmentType || '');
+  const [employerName, setEmployerName] = useState(initialData?.employerName || '');
   const [currency, setCurrency] = useState(initialData?.currency || 'USD');
   const [amount, setAmount] = useState(initialData?.amount || '');
   const [description, setDescription] = useState(initialData?.description || '');
@@ -86,6 +99,22 @@ export function InfoForm({ initialData, onContinue, onCancel }: InfoFormProps) {
       }
     }
 
+    if (!maritalStatus) {
+      newErrors.maritalStatus = 'Marital Status is required.';
+    }
+
+    if (!residentialAddress.trim()) {
+      newErrors.residentialAddress = 'Residential Address is required.';
+    }
+
+    if (!workAddress.trim()) {
+      newErrors.workAddress = 'Work Address is required.';
+    }
+
+    if (!employmentType.trim()) {
+      newErrors.employmentType = 'Employment Type / Occupation is required.';
+    }
+
     const numericAmount = parseFloat(amount.replace(/,/g, ''));
     if (!amount.trim()) {
       newErrors.amount = 'Amount is required.';
@@ -105,7 +134,6 @@ export function InfoForm({ initialData, onContinue, onCancel }: InfoFormProps) {
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    // Allow digits, single decimal point, and commas
     if (/^[0-9.,]*$/.test(val)) {
       setAmount(val);
       if (errors.amount) {
@@ -119,6 +147,11 @@ export function InfoForm({ initialData, onContinue, onCancel }: InfoFormProps) {
     setTouched({
       fullName: true,
       dateOfBirth: true,
+      maritalStatus: true,
+      residentialAddress: true,
+      workAddress: true,
+      employmentType: true,
+      employerName: true,
       amount: true,
       description: true,
     });
@@ -131,6 +164,11 @@ export function InfoForm({ initialData, onContinue, onCancel }: InfoFormProps) {
       onContinue({
         fullName: fullName.trim(),
         dateOfBirth,
+        maritalStatus,
+        residentialAddress: residentialAddress.trim(),
+        workAddress: workAddress.trim(),
+        employmentType: employmentType.trim(),
+        employerName: employerName.trim() || undefined,
         currency: selectedCurrencyObj.code,
         amount: formattedAmount,
         description: description.trim(),
@@ -141,6 +179,11 @@ export function InfoForm({ initialData, onContinue, onCancel }: InfoFormProps) {
   const handleCancel = () => {
     setFullName('');
     setDateOfBirth('');
+    setMaritalStatus('');
+    setResidentialAddress('');
+    setWorkAddress('');
+    setEmploymentType('');
+    setEmployerName('');
     setCurrency('USD');
     setAmount('');
     setDescription('');
@@ -151,7 +194,6 @@ export function InfoForm({ initialData, onContinue, onCancel }: InfoFormProps) {
     }
   };
 
-  // Today's date formatted as YYYY-MM-DD for max attribute on birth date
   const todayStr = new Date().toISOString().split('T')[0];
 
   return (
@@ -162,161 +204,328 @@ export function InfoForm({ initialData, onContinue, onCancel }: InfoFormProps) {
             <FileText className="w-6 h-6" />
           </div>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Funds Tracker</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Funds Tracker & Personal Profile</h1>
         <p className="text-slate-500 text-sm max-w-md mx-auto">
-          Please provide the details below to initiate your funds tracking process and proceed to plan selection.
+          Please provide your comprehensive personal, contact, employment, and incident details below to proceed.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
-        {/* Full Name */}
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-            Full Name <span className="text-rose-500">*</span>
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <User className="w-4 h-4" />
-            </div>
-            <input
-              type="text"
-              value={fullName}
-              onChange={(e) => {
-                setFullName(e.target.value);
-                if (errors.fullName) setErrors(prev => ({ ...prev, fullName: '' }));
-              }}
-              onBlur={() => setTouched(prev => ({ ...prev, fullName: true }))}
-              placeholder="e.g. Alex Morgan"
-              className={`w-full pl-10 pr-4 py-3 rounded-lg border text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all ${
-                errors.fullName && touched.fullName
-                  ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
-                  : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white'
-              }`}
-            />
-          </div>
-          {errors.fullName && touched.fullName && (
-            <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>{errors.fullName}</span>
-            </p>
-          )}
-        </div>
+        
+        {/* Section 1: Personal Details */}
+        <div className="space-y-4 pt-2 border-t border-slate-100">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600">Personal Details</h3>
 
-        {/* Date of Birth */}
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-            Date of Birth <span className="text-rose-500">*</span>
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <Calendar className="w-4 h-4" />
-            </div>
-            <input
-              type="date"
-              max={todayStr}
-              value={dateOfBirth}
-              onChange={(e) => {
-                setDateOfBirth(e.target.value);
-                if (errors.dateOfBirth) setErrors(prev => ({ ...prev, dateOfBirth: '' }));
-              }}
-              onBlur={() => setTouched(prev => ({ ...prev, dateOfBirth: true }))}
-              className={`w-full pl-10 pr-4 py-3 rounded-lg border text-sm text-slate-800 focus:outline-none transition-all ${
-                errors.dateOfBirth && touched.dateOfBirth
-                  ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
-                  : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white'
-              }`}
-            />
-          </div>
-          {errors.dateOfBirth && touched.dateOfBirth && (
-            <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>{errors.dateOfBirth}</span>
-            </p>
-          )}
-        </div>
-
-        {/* Amount (Currency + Amount) */}
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-            Amount <span className="text-rose-500">*</span>
-          </label>
-          <div className="flex gap-2">
-            {/* Currency Select */}
-            <div className="w-32 shrink-0">
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-3 py-3 rounded-lg border border-slate-300 bg-slate-50 text-slate-800 text-sm font-semibold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 cursor-pointer"
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Amount Field */}
-            <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-bold text-sm">
-                {CURRENCIES.find(c => c.code === currency)?.symbol || '$'}
+          {/* Full Name */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Full Name <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <User className="w-4 h-4" />
               </div>
               <input
                 type="text"
-                inputMode="decimal"
-                value={amount}
-                onChange={handleAmountChange}
-                onBlur={() => setTouched(prev => ({ ...prev, amount: true }))}
-                placeholder="0.00"
-                className={`w-full pl-9 pr-4 py-3 rounded-lg border text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all ${
-                  errors.amount && touched.amount
+                value={fullName}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  if (errors.fullName) setErrors(prev => ({ ...prev, fullName: '' }));
+                }}
+                onBlur={() => setTouched(prev => ({ ...prev, fullName: true }))}
+                placeholder="e.g. Alex Morgan"
+                className={`w-full pl-10 pr-4 py-3 rounded-lg border text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all ${
+                  errors.fullName && touched.fullName
                     ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
                     : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white'
                 }`}
               />
             </div>
+            {errors.fullName && touched.fullName && (
+              <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>{errors.fullName}</span>
+              </p>
+            )}
           </div>
-          {errors.amount && touched.amount && (
-            <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>{errors.amount}</span>
-            </p>
-          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Date of Birth */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Date of Birth <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <input
+                  type="date"
+                  max={todayStr}
+                  value={dateOfBirth}
+                  onChange={(e) => {
+                    setDateOfBirth(e.target.value);
+                    if (errors.dateOfBirth) setErrors(prev => ({ ...prev, dateOfBirth: '' }));
+                  }}
+                  onBlur={() => setTouched(prev => ({ ...prev, dateOfBirth: true }))}
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border text-sm text-slate-800 focus:outline-none transition-all ${
+                    errors.dateOfBirth && touched.dateOfBirth
+                      ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
+                      : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white'
+                  }`}
+                />
+              </div>
+              {errors.dateOfBirth && touched.dateOfBirth && (
+                <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>{errors.dateOfBirth}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Marital Status */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Marital Status <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={maritalStatus}
+                onChange={(e) => {
+                  setMaritalStatus(e.target.value);
+                  if (errors.maritalStatus) setErrors(prev => ({ ...prev, maritalStatus: '' }));
+                }}
+                onBlur={() => setTouched(prev => ({ ...prev, maritalStatus: true }))}
+                className={`w-full px-4 py-3 rounded-lg border text-sm text-slate-800 bg-white focus:outline-none transition-all cursor-pointer ${
+                  errors.maritalStatus && touched.maritalStatus
+                    ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
+                    : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200'
+                }`}
+              >
+                <option value="">Select marital status...</option>
+                {MARITAL_STATUSES.map(ms => (
+                  <option key={ms.value} value={ms.value}>{ms.label}</option>
+                ))}
+              </select>
+              {errors.maritalStatus && touched.maritalStatus && (
+                <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>{errors.maritalStatus}</span>
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Short Description of Incident */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Short Description of the Incident <span className="text-rose-500">*</span>
+        {/* Section 2: Contact Information */}
+        <div className="space-y-4 pt-4 border-t border-slate-100">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600">Contact Information</h3>
+
+          {/* Residential Address */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Residential Address (Full Address) <span className="text-rose-500">*</span>
             </label>
-            <span className={`text-[11px] ${description.length > MAX_DESC_LENGTH ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
-              {description.length} / {MAX_DESC_LENGTH}
-            </span>
+            <div className="relative">
+              <div className="absolute top-3.5 left-3.5 pointer-events-none text-slate-400">
+                <Home className="w-4 h-4" />
+              </div>
+              <textarea
+                rows={2}
+                value={residentialAddress}
+                onChange={(e) => {
+                  setResidentialAddress(e.target.value);
+                  if (errors.residentialAddress) setErrors(prev => ({ ...prev, residentialAddress: '' }));
+                }}
+                onBlur={() => setTouched(prev => ({ ...prev, residentialAddress: true }))}
+                placeholder="Street address, apartment, city, state, postal code, country..."
+                className={`w-full pl-10 pr-4 py-3 rounded-lg border text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all resize-none ${
+                  errors.residentialAddress && touched.residentialAddress
+                    ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
+                    : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white'
+                }`}
+              />
+            </div>
+            {errors.residentialAddress && touched.residentialAddress && (
+              <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>{errors.residentialAddress}</span>
+              </p>
+            )}
           </div>
-          <textarea
-            rows={4}
-            value={description}
-            onChange={(e) => {
-              if (e.target.value.length <= MAX_DESC_LENGTH) {
-                setDescription(e.target.value);
-                if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
-              }
-            }}
-            onBlur={() => setTouched(prev => ({ ...prev, description: true }))}
-            placeholder="Briefly describe what happened, including dates, financial platforms involved, transaction references, or details of the funds loss..."
-            className={`w-full p-3.5 rounded-lg border text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all resize-none ${
-              errors.description && touched.description
-                ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
-                : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white'
-            }`}
-          />
-          {errors.description && touched.description && (
-            <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>{errors.description}</span>
-            </p>
-          )}
+
+          {/* Work Address */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Work Address (Full Address) <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute top-3.5 left-3.5 pointer-events-none text-slate-400">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <textarea
+                rows={2}
+                value={workAddress}
+                onChange={(e) => {
+                  setWorkAddress(e.target.value);
+                  if (errors.workAddress) setErrors(prev => ({ ...prev, workAddress: '' }));
+                }}
+                onBlur={() => setTouched(prev => ({ ...prev, workAddress: true }))}
+                placeholder="Company street address, building, city, state, postal code, country..."
+                className={`w-full pl-10 pr-4 py-3 rounded-lg border text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all resize-none ${
+                  errors.workAddress && touched.workAddress
+                    ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
+                    : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white'
+                }`}
+              />
+            </div>
+            {errors.workAddress && touched.workAddress && (
+              <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>{errors.workAddress}</span>
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Section 3: Employment Information */}
+        <div className="space-y-4 pt-4 border-t border-slate-100">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600">Employment Information</h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Employment Type / Occupation */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Employment Type / Occupation <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  value={employmentType}
+                  onChange={(e) => {
+                    setEmploymentType(e.target.value);
+                    if (errors.employmentType) setErrors(prev => ({ ...prev, employmentType: '' }));
+                  }}
+                  onBlur={() => setTouched(prev => ({ ...prev, employmentType: true }))}
+                  placeholder="e.g. Software Engineer, Accountant..."
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all ${
+                    errors.employmentType && touched.employmentType
+                      ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
+                      : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white'
+                  }`}
+                />
+              </div>
+              {errors.employmentType && touched.employmentType && (
+                <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>{errors.employmentType}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Employer or Business Name (Optional) */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Employer or Business Name <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                value={employerName}
+                onChange={(e) => setEmployerName(e.target.value)}
+                placeholder="e.g. Acme Corp Inc."
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4: Case Information */}
+        <div className="space-y-4 pt-4 border-t border-slate-100">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600">Case Information</h3>
+
+          {/* Amount (Currency + Amount) */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Amount <span className="text-rose-500">*</span>
+            </label>
+            <div className="flex gap-2">
+              <div className="w-40 shrink-0">
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="w-full px-3 py-3 rounded-lg border border-slate-300 bg-slate-50 text-slate-800 text-xs font-semibold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 cursor-pointer"
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-bold text-sm">
+                  {CURRENCIES.find(c => c.code === currency)?.symbol || '$'}
+                </div>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={amount}
+                  onChange={handleAmountChange}
+                  onBlur={() => setTouched(prev => ({ ...prev, amount: true }))}
+                  placeholder="0.00"
+                  className={`w-full pl-9 pr-4 py-3 rounded-lg border text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all ${
+                    errors.amount && touched.amount
+                      ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
+                      : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white'
+                  }`}
+                />
+              </div>
+            </div>
+            {errors.amount && touched.amount && (
+              <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>{errors.amount}</span>
+              </p>
+            )}
+          </div>
+
+          {/* Short Description of Incident */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Incident Description <span className="text-rose-500">*</span>
+              </label>
+              <span className={`text-[11px] ${description.length > MAX_DESC_LENGTH ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
+                {description.length} / {MAX_DESC_LENGTH}
+              </span>
+            </div>
+            <textarea
+              rows={4}
+              value={description}
+              onChange={(e) => {
+                if (e.target.value.length <= MAX_DESC_LENGTH) {
+                  setDescription(e.target.value);
+                  if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
+                }
+              }}
+              onBlur={() => setTouched(prev => ({ ...prev, description: true }))}
+              placeholder="Briefly describe what happened, including dates, financial platforms involved, transaction references, or details of the funds loss..."
+              className={`w-full p-3.5 rounded-lg border text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all resize-none ${
+                errors.description && touched.description
+                  ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200'
+                  : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white'
+              }`}
+            />
+            {errors.description && touched.description && (
+              <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>{errors.description}</span>
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Buttons */}

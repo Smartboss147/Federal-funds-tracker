@@ -9,6 +9,11 @@ export interface Plan {
 export interface IncidentInfo {
   fullName: string;
   dateOfBirth: string;
+  maritalStatus: string;
+  residentialAddress: string;
+  workAddress: string;
+  employmentType: string;
+  employerName?: string;
   currency: string;
   amount: string;
   description: string;
