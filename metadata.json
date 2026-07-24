@@ -1,0 +1,6 @@
+{
+  "name": "Federal Funds Tracker",
+  "description": "A UI for tracking funds recovery progress over long durations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
