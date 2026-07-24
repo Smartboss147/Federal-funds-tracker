@@ -1,17 +1,28 @@
 import React from 'react';
 import { Plan } from '../types';
 import { PLANS } from '../constants';
-import { Clock } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 interface PlanSelectorProps {
   selectedPlanId: string | null;
   onSelect: (planId: string) => void;
   onStart: () => void;
+  onBack?: () => void;
 }
 
-export function PlanSelector({ selectedPlanId, onSelect, onStart }: PlanSelectorProps) {
+export function PlanSelector({ selectedPlanId, onSelect, onStart, onBack }: PlanSelectorProps) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 flex-1 flex flex-col w-full max-w-2xl mx-auto mt-8">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 flex-1 flex flex-col w-full max-w-2xl mx-auto mt-4 sm:mt-8">
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="self-start flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Information Form</span>
+        </button>
+      )}
+
       <div className="text-center space-y-2 mb-8">
         <h2 className="text-2xl font-bold text-slate-800">Funds Recovery Plans</h2>
         <p className="text-slate-500 text-sm">Choose a recovery timeframe to begin tracking.</p>
@@ -59,3 +70,4 @@ export function PlanSelector({ selectedPlanId, onSelect, onStart }: PlanSelector
     </div>
   );
 }
+

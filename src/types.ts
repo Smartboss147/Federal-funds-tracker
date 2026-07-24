@@ -6,10 +6,20 @@ export interface Plan {
   priceLabel: string;
 }
 
+export interface IncidentInfo {
+  fullName: string;
+  dateOfBirth: string;
+  currency: string;
+  amount: string;
+  description: string;
+}
+
 export interface TrackerState {
   id?: string;
   userId?: string;
-  step: 1 | 2 | 3 | 4;
+  step: 0 | 1 | 2 | 3 | 4;
+  incidentInfo?: IncidentInfo;
   planId: string | null;
   startTime: number | null;
 }
+

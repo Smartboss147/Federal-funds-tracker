@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { TrackerState } from './types';
+import { TrackerState, IncidentInfo } from './types';
+import { InfoForm } from './components/InfoForm';
 import { PlanSelector } from './components/PlanSelector';
 import { PaymentScreen } from './components/PaymentScreen';
 import { ReceiptUpload } from './components/ReceiptUpload';
@@ -14,7 +15,8 @@ import { ShieldCheck, RotateCcw } from 'lucide-react';
 const STORAGE_KEY = 'federal_funds_tracker_state';
 
 const INITIAL_STATE: TrackerState = {
-  step: 1,
+  step: 0,
+  incidentInfo: undefined,
   planId: null,
   startTime: null
 };
@@ -28,7 +30,7 @@ export default function App() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.step) {
+        if (typeof parsed.step === 'number') {
           setTrackerState(parsed);
         }
       }
@@ -47,6 +49,14 @@ export default function App() {
     }
   };
 
+  const handleInfoContinue = (info: IncidentInfo) => {
+    saveState({
+      ...trackerState,
+      incidentInfo: info,
+      step: 1
+    });
+  };
+
   const handlePlanSelect = (planId: string) => {
     saveState({ ...trackerState, planId });
   };
@@ -59,6 +69,10 @@ export default function App() {
     } else if (trackerState.step === 3) {
       saveState({ ...trackerState, step: 4, startTime: Date.now() });
     }
+  };
+
+  const handleBackToInfo = () => {
+    saveState({ ...trackerState, step: 0 });
   };
 
   const handleRestart = () => {
@@ -83,7 +97,7 @@ export default function App() {
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
             System Active
           </div>
-          {trackerState.step > 1 && (
+          {trackerState.step > 0 && (
             <button
               onClick={handleRestart}
               className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors"
@@ -97,11 +111,19 @@ export default function App() {
       </header>
 
       <main className="flex-1 overflow-auto p-4 md:p-6 flex flex-col items-center">
+        {trackerState.step === 0 && (
+          <InfoForm
+            initialData={trackerState.incidentInfo}
+            onContinue={handleInfoContinue}
+            onCancel={handleRestart}
+          />
+        )}
         {trackerState.step === 1 && (
           <PlanSelector 
             selectedPlanId={trackerState.planId} 
             onSelect={handlePlanSelect} 
-            onStart={handleNextStep} 
+            onStart={handleNextStep}
+            onBack={handleBackToInfo}
           />
         )}
         {trackerState.step === 2 && (
@@ -127,3 +149,4 @@ export default function App() {
     </div>
   );
 }
+

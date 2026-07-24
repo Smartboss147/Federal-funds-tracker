@@ -108,7 +108,37 @@ export function TrackerDashboard({ state, onRestart }: TrackerDashboardProps) {
         </div>
       </div>
 
+      {state.incidentInfo && (
+        <div className="mt-8 p-5 bg-slate-50 rounded-xl border border-slate-200/80">
+          <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center justify-between">
+            <span>Incident File Record</span>
+            <span className="text-[10px] bg-slate-200/80 text-slate-600 px-2 py-0.5 rounded font-mono">CONFIDENTIAL</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div>
+              <span className="text-slate-400 font-medium block">Full Name</span>
+              <span className="text-slate-800 font-bold text-sm">{state.incidentInfo.fullName}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 font-medium block">Date of Birth</span>
+              <span className="text-slate-800 font-bold text-sm">{state.incidentInfo.dateOfBirth}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 font-medium block">Claimed Amount</span>
+              <span className="text-slate-800 font-bold text-sm">{state.incidentInfo.currency} {state.incidentInfo.amount}</span>
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-slate-200/60 text-xs">
+            <span className="text-slate-400 font-medium block mb-1">Incident Summary</span>
+            <p className="text-slate-700 bg-white p-3 rounded-lg border border-slate-200/60 whitespace-pre-line leading-relaxed">
+              {state.incidentInfo.description}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="mt-8 flex justify-end pt-6 border-t border-slate-100">
+
         <button
           onClick={onRestart}
           className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors uppercase tracking-widest flex items-center gap-2"
